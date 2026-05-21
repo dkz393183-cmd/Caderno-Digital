@@ -215,9 +215,217 @@ body.dark .quiz-opt.reveal-correct{background:#0d2b1a;color:#5fcf8a}
 .ri-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
 .ri-body{font-size:11px;color:var(--muted);line-height:1.5}
 .empty{padding:30px;text-align:center;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;border:2px dashed var(--border)}
+
+/* ===== ASSISTENTE IA GLOBAL ===== */
+#ia-fab{
+  position:fixed;top:14px;right:20px;z-index:9999;
+  background:var(--sidebar);color:#e8e4dc;
+  border:1px solid #3a3a3a;padding:7px 15px 7px 11px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:12px;font-weight:500;letter-spacing:0.2px;
+  cursor:pointer;display:flex;align-items:center;gap:8px;
+  box-shadow:0 2px 16px rgba(0,0,0,0.45);
+  transition:background 0.15s,border-color 0.15s;
+}
+#ia-fab:hover{background:#222;border-color:#555}
+#ia-fab .ia-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--accent);
+  flex-shrink:0;animation:iapulse 2.4s ease-in-out infinite;
+}
+@keyframes iapulse{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:1;transform:scale(1.25)}}
+
+#ia-panel{
+  position:fixed;top:0;right:0;width:390px;height:100vh;z-index:10000;
+  display:flex;flex-direction:column;
+  background:#f9f7f2;border-left:1px solid #d0cbbf;
+  box-shadow:-8px 0 40px rgba(0,0,0,0.18);
+  transform:translateX(105%);transition:transform 0.32s cubic-bezier(.22,1,.36,1);
+}
+body.dark #ia-panel{background:#161616;border-left-color:#2a2a2a}
+#ia-panel.open{transform:translateX(0)}
+
+#ia-panel-head{
+  padding:13px 18px 12px;
+  background:#fff;
+  border-bottom:1px solid #e8e3da;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+body.dark #ia-panel-head{background:#1c1c1c;border-bottom-color:#2a2a2a}
+.ia-head-left{display:flex;align-items:center;gap:9px}
+.ia-head-name{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;font-weight:600;color:#1a1a1a;letter-spacing:-0.1px}
+body.dark .ia-head-name{color:#e8e4dc}
+.ia-head-sub{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:11px;color:#9a9490;margin-top:1px}
+.ia-status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;flex-shrink:0;box-shadow:0 0 0 2px rgba(34,197,94,0.2)}
+.ia-close-btn{
+  background:transparent;border:none;color:#aaa;cursor:pointer;
+  padding:4px;display:flex;align-items:center;justify-content:center;
+  border-radius:4px;transition:background 0.1s,color 0.1s;
+}
+.ia-close-btn:hover{background:#f0ece5;color:#333}
+body.dark .ia-close-btn:hover{background:#2a2a2a;color:#ccc}
+.ia-close-btn svg{width:16px;height:16px}
+
+#ia-ctx-bar{
+  padding:7px 16px;background:#f3f0e9;border-bottom:1px solid #e3dfd6;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:10.5px;color:#8a8580;flex-shrink:0;
+  display:flex;align-items:center;gap:5px;
+}
+body.dark #ia-ctx-bar{background:#111;border-bottom-color:#222;color:#555}
+.ctx-sep{color:#ccc;margin:0 1px}
+body.dark .ctx-sep{color:#333}
+#ia-ctx-page{color:#555;font-weight:500}
+body.dark #ia-ctx-page{color:#888}
+
+#ia-msgs{
+  flex:1;overflow-y:auto;padding:18px 16px 10px;
+  display:flex;flex-direction:column;gap:14px;
+  scroll-behavior:smooth;
+}
+#ia-msgs::-webkit-scrollbar{width:3px}
+#ia-msgs::-webkit-scrollbar-thumb{background:#d0cbbf;border-radius:3px}
+body.dark #ia-msgs::-webkit-scrollbar-thumb{background:#333}
+
+.ia-msg-wrap{display:flex;flex-direction:column;gap:3px;max-width:88%}
+.ia-msg-wrap.user{align-self:flex-end;align-items:flex-end}
+.ia-msg-wrap.bot{align-self:flex-start;align-items:flex-start}
+
+.ia-bubble{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:13px;line-height:1.6;padding:10px 14px;
+  border-radius:2px;
+}
+.ia-msg-wrap.user .ia-bubble{
+  background:var(--accent);color:#fff;
+  border-radius:12px 12px 2px 12px;
+}
+.ia-msg-wrap.bot .ia-bubble{
+  background:#fff;color:#1a1a1a;
+  border:1px solid #e8e3da;
+  border-radius:2px 12px 12px 12px;
+  white-space:pre-wrap;
+}
+body.dark .ia-msg-wrap.bot .ia-bubble{
+  background:#222;color:#ddd;border-color:#333;
+}
+
+/* markdown dentro do balão */
+.ia-bubble .md-h1{font-size:15px;font-weight:700;color:#1a1a1a;margin:6px 0 3px;line-height:1.3}
+.ia-bubble .md-h2{font-size:14px;font-weight:700;color:#1a1a1a;margin:6px 0 3px;line-height:1.3}
+.ia-bubble .md-h3{font-size:13px;font-weight:600;color:#333;margin:5px 0 2px;line-height:1.3;text-transform:none;letter-spacing:0}
+body.dark .ia-bubble .md-h1,
+body.dark .ia-bubble .md-h2{color:#eee}
+body.dark .ia-bubble .md-h3{color:#ccc}
+.ia-bubble .md-ul{margin:4px 0 4px 16px;padding:0;list-style:disc}
+.ia-bubble .md-ul li{margin:2px 0;font-size:13px;line-height:1.55}
+.ia-bubble .md-code{background:#f0ece5;color:#c84b31;padding:1px 5px;border-radius:3px;font-family:'Courier New',monospace;font-size:11px}
+body.dark .ia-bubble .md-code{background:#2a2a2a;color:#e06c3a}
+.ia-bubble strong{font-weight:600;color:#111}
+body.dark .ia-bubble strong{color:#f0ede8}
+.ia-bubble em{font-style:italic;color:#555}
+body.dark .ia-bubble em{color:#aaa}
+
+/* animação de entrada */
+.ia-msg-wrap{animation:iamsgIn 0.2s ease both}
+@keyframes iamsgIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* typing indicator */
+.ia-typing{display:flex;align-items:center;gap:4px;padding:12px 14px;background:#fff;border:1px solid #e8e3da;border-radius:2px 12px 12px 12px;width:fit-content}
+body.dark .ia-typing{background:#222;border-color:#333}
+.ia-typing span{width:5px;height:5px;border-radius:50%;background:#bbb;animation:iablink 1.2s infinite}
+.ia-typing span:nth-child(2){animation-delay:.2s}
+.ia-typing span:nth-child(3){animation-delay:.4s}
+@keyframes iablink{0%,80%,100%{transform:scale(1);opacity:.4}40%{transform:scale(1.4);opacity:1}}
+
+/* cursor piscando no final da resposta */
+.ia-cursor{display:inline-block;width:2px;height:13px;background:var(--accent);margin-left:1px;vertical-align:middle;animation:cursorBlink .7s steps(1) infinite}
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+
+#ia-suggestions{
+  padding:10px 14px 8px;border-top:1px solid #e8e3da;
+  display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;
+  background:#faf8f3;
+}
+body.dark #ia-suggestions{background:#111;border-top-color:#222}
+.ia-sug{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:11px;padding:5px 11px;
+  border:1px solid #ddd8ce;background:#fff;
+  border-radius:20px;cursor:pointer;color:#555;
+  transition:all 0.15s;white-space:nowrap;
+}
+body.dark .ia-sug{background:#1e1e1e;border-color:#333;color:#888}
+.ia-sug:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+#ia-input-area{
+  display:flex;align-items:center;gap:0;
+  border-top:1px solid #e8e3da;flex-shrink:0;
+  background:#fff;padding:10px 12px;
+}
+body.dark #ia-input-area{background:#1c1c1c;border-top-color:#2a2a2a}
+#ia-input{
+  flex:1;padding:8px 12px;
+  border:1px solid #e0dbd2;border-radius:20px;
+  background:#f9f7f2;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:13px;color:#1a1a1a;outline:none;
+  transition:border-color 0.15s;
+}
+body.dark #ia-input{background:#111;border-color:#333;color:#ddd}
+#ia-input:focus{border-color:#c0bbb0}
+#ia-input::placeholder{color:#b0aaa3}
+#ia-send-btn{
+  margin-left:8px;width:34px;height:34px;flex-shrink:0;
+  background:var(--accent);color:#fff;border:none;border-radius:50%;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:opacity 0.15s,transform 0.1s;
+}
+#ia-send-btn:hover{opacity:0.88;transform:scale(1.06)}
+#ia-send-btn svg{width:15px;height:15px}
 </style>
 </head>
 <body>
+
+<!-- ===== BOTÃO E PAINEL IA GLOBAL ===== -->
+<button id="ia-fab" onclick="toggleIaPanel()">
+  <span class="ia-dot"></span> Assistente IA
+</button>
+
+<div id="ia-panel">
+  <div id="ia-panel-head">
+    <div class="ia-head-left">
+      <span class="ia-status-dot"></span>
+      <div>
+        <div class="ia-head-name">Assistente IA</div>
+        <div class="ia-head-sub" id="ia-head-sub">pronto para ajudar</div>
+      </div>
+    </div>
+    <button class="ia-close-btn" onclick="toggleIaPanel()" title="Fechar">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 3l10 10M13 3L3 13"/></svg>
+    </button>
+  </div>
+  <div id="ia-ctx-bar">
+    <span id="ia-ctx-page">Início</span>
+    <span class="ctx-sep">·</span>
+    <span id="ia-ctx-data"></span>
+    <span class="ctx-sep">·</span>
+    <span id="ia-ctx-counts"></span>
+  </div>
+  <div id="ia-msgs"></div>
+  <div id="ia-suggestions">
+    <button class="ia-sug" onclick="iaSuggest(this)">Meu progresso</button>
+    <button class="ia-sug" onclick="iaSuggest(this)">Lições atrasadas</button>
+    <button class="ia-sug" onclick="iaSuggest(this)">O que revisar hoje?</button>
+    <button class="ia-sug" onclick="iaSuggest(this)">Plano de estudo</button>
+  </div>
+  <div id="ia-input-area">
+    <input id="ia-input" type="text" placeholder="Pergunte qualquer coisa..." onkeydown="if(event.key==='Enter')sendIaMsg()"/>
+    <button id="ia-send-btn" onclick="sendIaMsg()" title="Enviar">
+      <svg viewBox="0 0 20 20" fill="currentColor"><path d="M2.5 3.5a.5.5 0 01.7-.7l15 6.5a.5.5 0 010 .9l-15 6.5a.5.5 0 01-.7-.7L4.8 10 2.5 3.5z"/></svg>
+    </button>
+  </div>
+</div>
 
 <aside class="sidebar">
   <div class="logo">Caderno<button class="dark-toggle" onclick="toggleDark()" id="dark-btn">Dark</button></div>
@@ -1137,6 +1345,299 @@ function confirmarImportGeekie(){
   let msg=`${novas.length} lição(ões) importada(s) com sucesso!`;
   if(duplicatas>0)msg+=`\n(${duplicatas} já existia${duplicatas>1?'m':''} e foi${duplicatas>1?'ram':''} ignorada${duplicatas>1?'s':''})`;
   document.getElementById('geekie-ok-msg').textContent=msg;
+}
+
+// ===== ASSISTENTE IA GLOBAL =====
+let iaHistory = [];
+let iaPanelOpen = false;
+let iaCurrentPage = 'dashboard';
+let iaTyping = false;
+
+function toggleIaPanel() {
+  iaPanelOpen = !iaPanelOpen;
+  document.getElementById('ia-panel').classList.toggle('open', iaPanelOpen);
+  if (iaPanelOpen) {
+    iaUpdateContext();
+    if (iaHistory.length === 0) iaWelcome();
+    setTimeout(() => document.getElementById('ia-input').focus(), 350);
+  }
+}
+
+function iaUpdateContext() {
+  const pageNames = {
+    dashboard:'Início', anotacoes:'Anotações', licoes:'Lições',
+    flashcards:'Flashcards', resumidor:'Resumidor', timer:'Cronômetro', busca:'Busca'
+  };
+  const now = new Date();
+  const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const meses = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('ia-ctx-page').textContent = pageNames[iaCurrentPage] || iaCurrentPage;
+  document.getElementById('ia-ctx-data').textContent = `${dias[now.getDay()]}, ${now.getDate()} ${meses[now.getMonth()]}`;
+  const tn = Object.values(notes).reduce((a,b)=>a+b.length, 0);
+  const lp = licoes.filter(l=>!l.done).length;
+  const fc = flashcards.length;
+  document.getElementById('ia-ctx-counts').textContent = `${tn} nota${tn!==1?'s':''} · ${lp} lição${lp!==1?'s':''} · ${fc} card${fc!==1?'s':''}`;
+}
+
+function iaWelcome() {
+  const msg = 'Olá! Tenho acesso a tudo no seu caderno — anotações, lições, tempo de estudo, flashcards. Pode perguntar sobre seus estudos ou qualquer outro assunto.';
+  iaMsgAppendBot(msg, false);
+}
+
+function iaMsgAppendUser(text) {
+  const el = document.getElementById('ia-msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'ia-msg-wrap user';
+  const bubble = document.createElement('div');
+  bubble.className = 'ia-bubble';
+  bubble.textContent = text;
+  wrap.appendChild(bubble);
+  el.appendChild(wrap);
+  el.scrollTop = el.scrollHeight;
+}
+
+function iaShowTyping() {
+  const el = document.getElementById('ia-msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'ia-msg-wrap bot';
+  wrap.id = 'ia-typing-wrap';
+  const typing = document.createElement('div');
+  typing.className = 'ia-typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  wrap.appendChild(typing);
+  el.appendChild(wrap);
+  el.scrollTop = el.scrollHeight;
+  document.getElementById('ia-head-sub').textContent = 'digitando...';
+}
+
+function iaRemoveTyping() {
+  const t = document.getElementById('ia-typing-wrap');
+  if (t) t.remove();
+}
+
+function iaParseMarkdown(text) {
+  // Escapa HTML primeiro
+  const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const lines = text.split('\n');
+  let html = '';
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // Headings
+    if (/^### (.+)/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div class="md-h3">${esc(line.replace(/^### /,''))}</div>`;
+      continue;
+    }
+    if (/^## (.+)/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div class="md-h2">${esc(line.replace(/^## /,''))}</div>`;
+      continue;
+    }
+    if (/^# (.+)/.test(line)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<div class="md-h1">${esc(line.replace(/^# /,''))}</div>`;
+      continue;
+    }
+
+    // Listas
+    if (/^[-*] (.+)/.test(line)) {
+      if (!inList) { html += '<ul class="md-ul">'; inList = true; }
+      const content = inlineFormat(esc(line.replace(/^[-*] /,'')));
+      html += `<li>${content}</li>`;
+      continue;
+    }
+
+    // Fim de lista
+    if (inList && line.trim() === '') {
+      html += '</ul>';
+      inList = false;
+      html += '<br>';
+      continue;
+    }
+    if (inList) {
+      html += '</ul>';
+      inList = false;
+    }
+
+    // Linha vazia
+    if (line.trim() === '') {
+      html += '<br>';
+      continue;
+    }
+
+    // Parágrafo normal
+    html += `<span>${inlineFormat(esc(line))}</span><br>`;
+  }
+
+  if (inList) html += '</ul>';
+  // Remove brs duplos no final
+  html = html.replace(/(<br>){3,}/g, '<br><br>');
+  return html;
+}
+
+function inlineFormat(s) {
+  return s
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/`(.+?)`/g, '<code class="md-code">$1</code>');
+}
+
+function iaMsgAppendBot(text, animate = true) {
+  const el = document.getElementById('ia-msgs');
+  const wrap = document.createElement('div');
+  wrap.className = 'ia-msg-wrap bot';
+  const bubble = document.createElement('div');
+  bubble.className = 'ia-bubble';
+  wrap.appendChild(bubble);
+  el.appendChild(wrap);
+
+  if (!animate) {
+    bubble.innerHTML = iaParseMarkdown(text);
+    el.scrollTop = el.scrollHeight;
+    document.getElementById('ia-head-sub').textContent = 'pronto para ajudar';
+    return;
+  }
+
+  // Animação: revela palavra a palavra sobre o HTML já renderizado
+  const cursor = document.createElement('span');
+  cursor.className = 'ia-cursor';
+
+  // Divide em tokens (palavras + espaços) para animar
+  const tokens = text.split(/(\s+)/);
+  let i = 0;
+  let built = '';
+
+  const speed = text.length > 500 ? 18 : text.length > 200 ? 28 : 40;
+
+  function type() {
+    if (i < tokens.length) {
+      built += tokens[i];
+      bubble.innerHTML = iaParseMarkdown(built);
+      bubble.appendChild(cursor);
+      i++;
+      el.scrollTop = el.scrollHeight;
+      setTimeout(type, tokens[i-1].trim() === '' ? speed * 0.3 : speed);
+    } else {
+      cursor.remove();
+      bubble.innerHTML = iaParseMarkdown(text);
+      document.getElementById('ia-head-sub').textContent = 'pronto para ajudar';
+      iaTyping = false;
+      el.scrollTop = el.scrollHeight;
+    }
+  }
+  type();
+}
+
+function iaSuggest(btn) {
+  if (iaTyping) return;
+  document.getElementById('ia-input').value = btn.textContent;
+  sendIaMsg();
+}
+
+function iaBuildContext() {
+  const now = new Date();
+  const totalNotas = Object.values(notes).reduce((a,b)=>a+b.length, 0);
+  const licoesPend = licoes.filter(l=>!l.done);
+  const licoesFeitas = licoes.filter(l=>l.done);
+  const todayMins = Math.floor((getTodaySecs ? getTodaySecs() : 0) / 60);
+  const atrasadas = licoesPend.filter(l => l.prazo && new Date(l.prazo+'T23:59:59') < now);
+  const urgentes = licoesPend.filter(l => {
+    if (!l.prazo) return false;
+    const diff = Math.ceil((new Date(l.prazo+'T23:59:59') - now) / 86400000);
+    return diff >= 0 && diff <= 2;
+  });
+
+  let notasPorMateria = '';
+  SUBJECTS.forEach(s => {
+    const arr = notes[s.id] || [];
+    if (arr.length) {
+      notasPorMateria += `\n### ${s.name} (${arr.length})\n`;
+      arr.slice(0, 4).forEach(n => {
+        notasPorMateria += `- "${n.title}": ${n.content.slice(0,100)}${n.content.length>100?'…':''}\n`;
+      });
+      if (arr.length > 4) notasPorMateria += `  (+${arr.length-4} mais)\n`;
+    }
+  });
+
+  const sessionsRecentes = sessions.slice(0,5).map(s => {
+    const m = SUBJECTS.find(sub=>sub.id===s.materia)?.name || s.materia || 'Geral';
+    return `${m}: ${Math.floor(s.secs/60)}min`;
+  }).join(', ');
+
+  const fcFacil = flashcards.filter(c=>c.nivel==='facil').length;
+  const fcMedio = flashcards.filter(c=>c.nivel==='medio').length;
+  const fcDificil = flashcards.filter(c=>c.nivel==='dificil'||c.nivel==='novo').length;
+
+  return `Você é um assistente pessoal integrado a um caderno digital de estudos. Responda em português, de forma clara e direta, sem emojis. Você tem acesso completo ao caderno do usuário:
+
+DATA/HORA: ${now.toLocaleString('pt-BR')}
+PÁGINA ATUAL: ${iaCurrentPage}
+META DIÁRIA: ${metaMin}min | ESTUDADO HOJE: ${todayMins}min (${Math.round(todayMins/metaMin*100)}%)
+ANOTAÇÕES: ${totalNotas} | FLASHCARDS: ${flashcards.length} (${fcFacil} fáceis, ${fcMedio} médios, ${fcDificil} difíceis)
+SESSÕES RECENTES: ${sessionsRecentes || 'nenhuma'}
+
+LIÇÕES PENDENTES: ${licoesPend.length} | CONCLUÍDAS: ${licoesFeitas.length}
+ATRASADAS: ${atrasadas.map(l=>l.titulo).join(', ') || 'nenhuma'}
+URGENTES (≤2 dias): ${urgentes.map(l=>l.titulo).join(', ') || 'nenhuma'}
+LISTA PENDENTE: ${licoesPend.slice(0,10).map(l=>`${l.titulo} (${SUBJECTS.find(s=>s.id===l.materia)?.name||l.materia}${l.prazo?', prazo: '+new Date(l.prazo+'T12:00').toLocaleDateString('pt-BR'):''})`).join('; ')}
+
+ANOTAÇÕES:${notasPorMateria || '\n(nenhuma)'}
+
+Ajude com estudos, pesquisas gerais, análise de progresso ou qualquer outro assunto. Seja conciso e direto.`;
+}
+
+async function sendIaMsg() {
+  if (iaTyping) return;
+  const inp = document.getElementById('ia-input');
+  const q = inp.value.trim();
+  if (!q) return;
+  inp.value = '';
+
+  iaMsgAppendUser(q);
+  iaHistory.push({ role: 'user', content: q });
+  iaShowTyping();
+  iaTyping = true;
+  iaUpdateContext();
+
+  try {
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: iaBuildContext(),
+        messages: iaHistory,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }]
+      })
+    });
+    const d = await r.json();
+    const reply = d.content
+      ? d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim() || 'Não consegui gerar uma resposta.'
+      : 'Erro na resposta.';
+
+    iaRemoveTyping();
+    iaMsgAppendBot(reply, true);
+    iaHistory.push({ role: 'assistant', content: d.content || reply });
+    if (iaHistory.length > 40) iaHistory = iaHistory.slice(-36);
+
+  } catch(e) {
+    iaRemoveTyping();
+    iaMsgAppendBot('Erro de conexão. Verifique sua internet e tente novamente.', false);
+    iaTyping = false;
+  }
+}
+
+// Interceptar showPage para atualizar contexto da IA
+const _origShowPage = showPage;
+function showPage(id) {
+  iaCurrentPage = id;
+  _origShowPage(id);
+  if (iaPanelOpen) iaUpdateContext();
 }
 
 // INIT

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Caderno</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f2efe8;--sidebar:#1a1a1a;--card:#faf8f3;--border:#d9d4c8;
+  --accent:#c84b31;--text:#1a1a1a;--muted:#7a7570;
+  --green:#2d7a4f;--yellow:#c8960a;--blue:#1a4fa8;
+}
+body.dark{
+  --bg:#111;--sidebar:#0a0a0a;--card:#1c1c1c;--border:#2a2a2a;
+  --text:#e8e4dc;--muted:#665f58;
+}
+body{font-family:'Courier New',Courier,monospace;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px;transition:background 0.2s,color 0.2s}
+.sidebar{width:210px;min-height:100vh;background:var(--sidebar);position:fixed;top:0;left:0;display:flex;flex-direction:column;border-right:3px solid #333;z-index:50;overflow-y:auto}
+.logo{padding:18px 20px 14px;font-size:15px;font-weight:700;color:#fff;letter-spacing:2px;text-transform:uppercase;border-bottom:1px solid #333;display:flex;align-items:center;justify-content:space-between}
+.dark-toggle{background:transparent;border:1px solid #444;color:#aaa;padding:3px 8px;font-family:'Courier New',monospace;font-size:10px;cursor:pointer;letter-spacing:1px;text-transform:uppercase}
+.dark-toggle:hover{border-color:#888;color:#fff}
+.nav-item{padding:12px 20px;color:#aaa;cursor:pointer;font-size:12px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid #222;display:flex;align-items:center;justify-content:space-between;transition:background 0.1s,color 0.1s;user-select:none}
+.nav-item:hover{background:#222;color:#fff}
+.nav-item.active{background:var(--accent);color:#fff}
+.badge{background:#fff;color:var(--accent);font-size:10px;font-weight:700;padding:1px 6px;border-radius:2px;min-width:18px;text-align:center;display:none}
+.badge.show{display:block}
+.sidebar-search{padding:10px 12px;border-bottom:1px solid #222}
+.sidebar-search input{width:100%;padding:7px 10px;background:#222;border:1px solid #333;color:#ccc;font-family:'Courier New',monospace;font-size:12px;outline:none}
+.sidebar-search input::placeholder{color:#555}
+.sidebar-search input:focus{border-color:#555}
+/* META DIÁRIA - sidebar widget */
+.meta-widget{padding:10px 12px;border-bottom:1px solid #222}
+.meta-widget-label{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#666;margin-bottom:5px;display:flex;justify-content:space-between}
+.meta-bar-bg{background:#333;height:6px;border-radius:0}
+.meta-bar-fill{background:var(--green);height:6px;border-radius:0;transition:width 0.4s}
+.meta-widget-time{font-size:10px;color:#888;margin-top:4px}
+.main{margin-left:210px;flex:1;padding:28px 36px;max-width:1060px}
+.page{display:none}.page.active{display:block}
+.ph{margin-bottom:24px;border-bottom:2px solid var(--border);padding-bottom:12px;display:flex;align-items:flex-end;justify-content:space-between}
+.ph-left h1{font-size:20px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
+.ph-left p{color:var(--muted);margin-top:3px;font-size:11px;letter-spacing:0.5px}
+.stats{display:flex;gap:0;margin-bottom:24px;border:2px solid var(--border);background:var(--card)}
+.stat{flex:1;padding:18px 22px;border-right:2px solid var(--border)}
+.stat:last-child{border-right:none}
+.stat .n{font-size:32px;font-weight:700;line-height:1}
+.stat .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.section-title{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px;margin-top:24px}
+.subjects-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:0;border:2px solid var(--border)}
+.subject-card{background:var(--card);padding:16px;cursor:pointer;border-right:2px solid var(--border);border-bottom:2px solid var(--border);transition:background 0.1s;position:relative}
+.subject-card:hover{background:var(--border)}
+.subject-name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.subject-count{font-size:10px;color:var(--muted)}
+.subject-dot{width:7px;height:7px;border-radius:50%;background:var(--subject-color,#ccc);display:inline-block;margin-right:5px;flex-shrink:0}
+.notes-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.notes-header h2{font-size:15px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.btn{font-family:'Courier New',Courier,monospace;background:var(--sidebar);color:#fff;border:none;padding:8px 14px;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer;transition:opacity 0.1s;font-weight:700}
+.btn:hover{opacity:0.8}
+.btn.outline{background:transparent;border:2px solid var(--text);color:var(--text)}
+.btn.outline:hover{background:var(--text);color:var(--bg)}
+.btn.red{background:var(--accent)}
+.btn.green{background:var(--green)}
+.btn.blue{background:var(--blue)}
+.btn.sm{padding:5px 10px;font-size:10px}
+.add-form{background:var(--card);border:2px solid var(--border);border-left:4px solid var(--accent);padding:18px;margin-bottom:14px;display:none}
+.add-form.open{display:block}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:4px}
+.fg input,.fg textarea,.fg select{width:100%;padding:8px 11px;border:2px solid var(--border);background:var(--bg);font-family:'Courier New',Courier,monospace;font-size:13px;color:var(--text);outline:none;resize:vertical;border-radius:0;transition:border 0.1s}
+.fg input:focus,.fg textarea:focus,.fg select:focus{border-color:var(--accent)}
+.frow{display:flex;gap:10px}
+.frow .fg{flex:1}
+.form-actions{display:flex;gap:7px;justify-content:flex-end}
+.note-list{display:flex;flex-direction:column;border:2px solid var(--border)}
+.note-card{background:var(--card);padding:14px 18px;border-bottom:2px solid var(--border);display:flex;align-items:flex-start;gap:12px}
+.note-card:last-child{border-bottom:none}
+.note-left{flex:1;min-width:0}
+.note-title{font-size:13px;font-weight:700;letter-spacing:0.3px;margin-bottom:3px}
+.note-date{font-size:10px;color:var(--muted);margin-bottom:5px}
+.note-body{font-size:12px;color:var(--muted);line-height:1.6;white-space:pre-wrap}
+.note-actions{display:flex;gap:5px;flex-shrink:0}
+.search-results{display:flex;flex-direction:column;gap:0;border:2px solid var(--border)}
+.search-result{background:var(--card);padding:12px 16px;border-bottom:2px solid var(--border);cursor:pointer}
+.search-result:hover{background:var(--border)}
+.search-result:last-child{border-bottom:none}
+.sr-title{font-size:13px;font-weight:700}
+.sr-sub{font-size:10px;color:var(--muted);margin:2px 0}
+.sr-body{font-size:11px;color:var(--muted)}
+mark{background:rgba(200,75,49,0.25);color:var(--text)}
+.licao-list{display:flex;flex-direction:column;border:2px solid var(--border)}
+.licao-row{background:var(--card);padding:12px 16px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px}
+.licao-row:last-child{border-bottom:none}
+.licao-row.done-row{opacity:0.45}
+.check{width:19px;height:19px;border:2px solid var(--border);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all 0.1s;background:var(--bg)}
+.check.done{background:var(--green);border-color:var(--green);color:#fff}
+.licao-info{flex:1}
+.licao-t{font-size:12px;font-weight:700}
+.licao-t.done-text{text-decoration:line-through;color:var(--muted)}
+.licao-m{font-size:10px;color:var(--muted);margin-top:2px}
+.tag{display:inline-block;border:1px solid var(--border);padding:1px 6px;font-size:9px;text-transform:uppercase;letter-spacing:0.5px;margin-left:5px;color:var(--muted)}
+.prazo{font-size:10px;font-weight:700;padding:2px 7px;margin-right:6px;flex-shrink:0}
+.prazo.urgente{background:var(--accent);color:#fff}
+.prazo.ok{background:var(--green);color:#fff}
+.prazo.normal{color:var(--muted);border:1px solid var(--border)}
+.filter-bar{display:flex;gap:0;margin-bottom:14px;border:2px solid var(--border)}
+.filter-opt{padding:7px 16px;font-family:'Courier New',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;cursor:pointer;background:var(--card);border-right:2px solid var(--border);color:var(--muted);transition:all 0.1s}
+.filter-opt:last-child{border-right:none}
+.filter-opt.active{background:var(--sidebar);color:#fff}
+.resumidor-wrap{border:2px solid var(--border);background:var(--card)}
+.resumidor-top{padding:14px 18px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.resumidor-top span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-right:3px}
+.tipo-btn{font-family:'Courier New',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;padding:4px 10px;border:2px solid var(--border);background:var(--bg);cursor:pointer;color:var(--muted);transition:all 0.1s}
+.tipo-btn.active{background:var(--sidebar);border-color:var(--sidebar);color:#fff}
+.resumidor-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.resumidor-col label{display:block;padding:9px 14px;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--muted);border-bottom:2px solid var(--border);background:var(--bg)}
+.resumidor-col:first-child{border-right:2px solid var(--border)}
+.resumidor-col textarea{width:100%;min-height:240px;padding:14px;border:none;background:var(--card);font-family:'Courier New',Courier,monospace;font-size:12px;color:var(--text);resize:none;outline:none;line-height:1.7}
+.resumidor-col textarea[readonly]{background:var(--bg);color:var(--muted)}
+.resumidor-foot{padding:12px 16px;border-top:2px solid var(--border);display:flex;gap:7px;justify-content:flex-end;background:var(--bg);flex-wrap:wrap}
+.ai-chat{border:2px solid var(--border);background:var(--card);margin-top:14px}
+.ai-chat-header{padding:10px 16px;border-bottom:2px solid var(--border);background:var(--bg);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.ai-messages{min-height:120px;max-height:280px;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.ai-msg{font-size:12px;line-height:1.6;padding:10px 12px;border:1px solid var(--border)}
+.ai-msg.user{background:var(--sidebar);color:#fff;align-self:flex-end;max-width:75%}
+.ai-msg.ai{background:var(--bg);color:var(--text);align-self:flex-start;max-width:85%;white-space:pre-wrap}
+.ai-msg.thinking{color:var(--muted);font-style:italic}
+.ai-input-row{display:flex;gap:0;border-top:2px solid var(--border)}
+.ai-input-row input{flex:1;padding:10px 14px;border:none;background:var(--bg);font-family:'Courier New',monospace;font-size:12px;color:var(--text);outline:none}
+.ai-input-row button{font-family:'Courier New',monospace;background:var(--sidebar);color:#fff;border:none;padding:10px 18px;font-size:11px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+.ai-input-row button:hover{opacity:0.82}
+.timer-box{border:2px solid var(--border);background:var(--card);padding:0}
+.timer-display{font-size:56px;font-weight:700;letter-spacing:4px;padding:32px;text-align:center;border-bottom:2px solid var(--border);line-height:1}
+.timer-display.running{color:var(--green)}
+.timer-display.paused{color:var(--yellow)}
+.timer-controls{display:flex;gap:0;border-bottom:2px solid var(--border)}
+.timer-controls .btn{flex:1;padding:12px;font-size:11px;border-right:2px solid var(--border)}
+.timer-controls .btn:last-child{border-right:none}
+.timer-sessions{padding:16px;max-height:200px;overflow-y:auto}
+.session-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.session-row:last-child{border-bottom:none}
+.session-row .s-time{color:var(--muted)}
+.session-meta{display:flex;gap:14px;padding:10px 16px;border-top:2px solid var(--border);background:var(--bg);flex-wrap:wrap}
+.session-meta label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-right:6px}
+.session-meta select,.session-meta input{font-family:'Courier New',monospace;font-size:11px;padding:4px 8px;border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none}
+/* GRAFICO SEMANAL */
+.weekly-chart{padding:16px;border-top:2px solid var(--border)}
+.weekly-chart-title{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:12px}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:80px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;background:var(--green);transition:height 0.3s;min-height:2px}
+.chart-bar.today{background:var(--accent)}
+.chart-bar-label{font-size:9px;color:var(--muted);text-transform:uppercase}
+.chart-bar-val{font-size:9px;color:var(--muted)}
+/* META */
+.meta-config{border:2px solid var(--border);background:var(--card);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.meta-config label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+.meta-config input[type=number]{width:70px;padding:5px 8px;border:2px solid var(--border);background:var(--bg);font-family:'Courier New',monospace;font-size:13px;color:var(--text);outline:none;border-radius:0}
+.meta-progress{border:2px solid var(--border);background:var(--card);padding:16px;margin-bottom:24px}
+.meta-progress-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;display:flex;justify-content:space-between}
+.meta-progress-bar-bg{background:var(--border);height:10px}
+.meta-progress-bar-fill{background:var(--green);height:10px;transition:width 0.4s}
+.meta-progress-bar-fill.done{background:var(--yellow)}
+/* FLASHCARDS */
+.flashcard-wrap{perspective:1000px;width:100%;max-width:500px;margin:0 auto 20px;height:240px;cursor:pointer}
+.flashcard-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 0.5s}
+.flashcard-inner.flipped{transform:rotateY(180deg)}
+.flashcard-face{position:absolute;width:100%;height:100%;backface-visibility:hidden;border:3px solid var(--border);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.flashcard-face.back{transform:rotateY(180deg);background:var(--bg)}
+.flashcard-label{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px}
+.flashcard-text{font-size:15px;line-height:1.5;color:var(--text)}
+.flashcard-controls{display:flex;gap:0;border:2px solid var(--border);margin-bottom:20px;max-width:500px;margin-left:auto;margin-right:auto}
+.flashcard-controls .btn{flex:1;padding:10px;font-size:11px;border-right:2px solid var(--border)}
+.flashcard-controls .btn:last-child{border-right:none}
+.fc-stats{display:flex;gap:0;border:2px solid var(--border);max-width:500px;margin:0 auto 20px;background:var(--card)}
+.fc-stat{flex:1;padding:10px;text-align:center;border-right:2px solid var(--border);font-size:11px}
+.fc-stat:last-child{border-right:none}
+.fc-stat .n{font-size:20px;font-weight:700}
+.fc-stat .l{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-top:2px}
+.fc-add-form{border:2px solid var(--border);border-left:4px solid var(--blue);background:var(--card);padding:18px;display:none}
+.fc-add-form.open{display:block}
+.fc-list{border:2px solid var(--border)}
+.fc-row{background:var(--card);padding:11px 16px;border-bottom:2px solid var(--border);display:flex;align-items:center;gap:10px;font-size:12px}
+.fc-row:last-child{border-bottom:none}
+.fc-row-q{flex:1;font-weight:700}
+.fc-row-a{flex:1;color:var(--muted)}
+.fc-badge{font-size:9px;padding:2px 7px;background:var(--green);color:#fff;margin-right:6px}
+.fc-badge.hard{background:var(--accent)}
+.fc-badge.med{background:var(--yellow)}
+/* QUIZ IA */
+.quiz-wrap{border:2px solid var(--border);background:var(--card);margin-top:14px}
+.quiz-header{padding:10px 16px;border-bottom:2px solid var(--border);background:var(--bg);font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);display:flex;justify-content:space-between;align-items:center}
+.quiz-body{padding:18px}
+.quiz-question{font-size:14px;font-weight:700;margin-bottom:16px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{padding:10px 14px;border:2px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;text-align:left;font-family:'Courier New',monospace;transition:all 0.1s;color:var(--text)}
+.quiz-opt:hover{background:var(--border)}
+.quiz-opt.correct{background:#d4edda;border-color:var(--green);color:#155724}
+.quiz-opt.wrong{background:#f8d7da;border-color:var(--accent);color:#721c24}
+.quiz-opt.reveal-correct{background:#d4edda;border-color:var(--green);color:#155724}
+body.dark .quiz-opt.correct{background:#0d2b1a;color:#5fcf8a}
+body.dark .quiz-opt.wrong{background:#2b0d0d;color:#cf5f5f}
+body.dark .quiz-opt.reveal-correct{background:#0d2b1a;color:#5fcf8a}
+.quiz-feedback{font-size:12px;padding:10px 14px;margin-bottom:12px;border-left:4px solid var(--green)}
+.quiz-feedback.wrong{border-left-color:var(--accent)}
+.quiz-score{font-size:13px;font-weight:700;text-align:center;padding:16px;border-top:2px solid var(--border)}
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:999;align-items:center;justify-content:center}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border:3px solid var(--sidebar);padding:24px;width:90%;max-width:500px;max-height:90vh;overflow-y:auto}
+.modal h3{font-size:14px;text-transform:uppercase;letter-spacing:1px;margin-bottom:16px;padding-bottom:10px;border-bottom:2px solid var(--border)}
+.modal-actions{display:flex;gap:7px;justify-content:flex-end;margin-top:14px}
+.recent-item{background:var(--card);border:2px solid var(--border);border-left:4px solid var(--subject-color,#ccc);padding:10px 14px;margin-bottom:-2px}
+.ri-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.ri-title{font-size:12px;font-weight:700}
+.ri-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px}
+.ri-body{font-size:11px;color:var(--muted);line-height:1.5}
+.empty{padding:30px;text-align:center;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:1px;border:2px dashed var(--border)}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="logo">Caderno<button class="dark-toggle" onclick="toggleDark()" id="dark-btn">Dark</button></div>
+  <div class="sidebar-search">
+    <input type="text" id="global-search" placeholder="Buscar anotações..." oninput="handleSearch(this.value)" onkeydown="if(event.key==='Enter')doSearch()"/>
+  </div>
+  <div class="meta-widget" id="meta-widget">
+    <div class="meta-widget-label"><span>Meta diária</span><span id="meta-pct-label">0%</span></div>
+    <div class="meta-bar-bg"><div class="meta-bar-fill" id="meta-bar" style="width:0%"></div></div>
+    <div class="meta-widget-time" id="meta-time-label">0 min estudados hoje</div>
+  </div>
+  <div class="nav-item active" onclick="showPage('dashboard')">Início</div>
+  <div class="nav-item" onclick="showPage('anotacoes')">Anotações</div>
+  <div class="nav-item" onclick="showPage('licoes')">Lições <span class="badge" id="licoes-badge">0</span></div>
+  <div class="nav-item" onclick="showPage('flashcards')">Flashcards <span class="badge" id="fc-badge" style="background:#1a4fa8;color:#fff">0</span></div>
+  <div class="nav-item" onclick="showPage('resumidor')">Resumidor IA</div>
+  <div class="nav-item" onclick="showPage('timer')">Cronômetro</div>
+  <div class="nav-item" onclick="showPage('busca')" id="nav-busca" style="display:none">Busca</div>
+</aside>
+
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="ph"><div class="ph-left"><h1>Início</h1><p id="dash-date"></p></div></div>
+    <div class="stats">
+      <div class="stat"><div class="n" id="dash-notas">0</div><div class="l">Anotações</div></div>
+      <div class="stat"><div class="n" id="dash-lt">0</div><div class="l">Lições</div></div>
+      <div class="stat"><div class="n" id="dash-lf">0</div><div class="l">Concluídas</div></div>
+      <div class="stat"><div class="n" id="dash-tempo">0m</div><div class="l">Estudadas</div></div>
+    </div>
+    <!-- META PROGRESSO -->
+    <div class="section-title">Meta de hoje</div>
+    <div class="meta-config">
+      <label>Meta diária:</label>
+      <input type="number" id="meta-input" min="5" max="480" step="5" value="60" oninput="saveMeta(this.value)"/>
+      <span style="font-size:11px;color:var(--muted)">minutos</span>
+    </div>
+    <div class="meta-progress">
+      <div class="meta-progress-label">
+        <span>Progresso de hoje</span>
+        <span id="meta-dash-label">0 / 60 min</span>
+      </div>
+      <div class="meta-progress-bar-bg">
+        <div class="meta-progress-bar-fill" id="meta-dash-bar" style="width:0%"></div>
+      </div>
+    </div>
+    <div class="section-title">Lições pendentes</div>
+    <div id="dash-pendentes"></div>
+    <div class="section-title" style="margin-top:20px">Últimas anotações</div>
+    <div id="dash-recentes"></div>
+  </div>
+
+  <!-- BUSCA -->
+  <div class="page" id="page-busca">
+    <div class="ph"><div class="ph-left"><h1>Busca</h1><p id="busca-query"></p></div></div>
+    <div id="busca-results"></div>
+  </div>
+
+  <!-- ANOTAÇÕES -->
+  <div class="page" id="page-anotacoes">
+    <div class="ph"><div class="ph-left"><h1>Anotações</h1><p>Selecione uma matéria</p></div></div>
+    <div class="subjects-grid" id="subjects-grid"></div>
+    <div id="notes-area" style="display:none;margin-top:24px">
+      <div class="notes-header">
+        <h2 id="notes-area-title"></h2>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn outline sm" onclick="closeNotes()">← Voltar</button>
+          <button class="btn blue sm" onclick="exportNotes()">Exportar .txt</button>
+          <button class="btn sm" onclick="toggleAddNote()">+ Nova</button>
+        </div>
+      </div>
+      <div class="add-form" id="add-note-form">
+        <div class="fg"><label>Título</label><input type="text" id="note-title-input" placeholder="Ex: Células — estrutura e função"/></div>
+        <div class="fg"><label>Conteúdo</label><textarea id="note-content-input" rows="5" placeholder="Escreva suas anotações aqui..."></textarea></div>
+        <div class="fg"><label>Tags (separadas por vírgula, opcional)</label><input type="text" id="note-tags-input" placeholder="Ex: prova, cap.3, importante"/></div>
+        <div class="form-actions">
+          <button class="btn outline sm" onclick="toggleAddNote()">Cancelar</button>
+          <button class="btn green sm" onclick="saveNote()">Salvar</button>
+        </div>
+      </div>
+      <div id="note-list"></div>
+      <!-- QUIZ IA -->
+      <div style="margin-top:20px">
+        <div class="section-title">Quiz de <span id="quiz-subject-name"></span> — teste seus conhecimentos</div>
+        <div class="quiz-wrap">
+          <div class="quiz-header">
+            <span>Quiz gerado por IA</span>
+            <button class="btn sm" onclick="gerarQuiz()">Gerar quiz</button>
+          </div>
+          <div class="quiz-body" id="quiz-body">
+            <div style="text-align:center;color:var(--muted);font-size:11px;padding:20px">Clique em "Gerar quiz" para criar perguntas baseadas nas suas anotações</div>
+          </div>
+        </div>
+      </div>
+      <!-- CHAT IA -->
+      <div style="margin-top:20px">
+        <div class="section-title">Perguntar à IA sobre <span id="ai-subject-name"></span></div>
+        <div class="ai-chat">
+          <div class="ai-chat-header"><span>Assistente de estudos</span><button class="btn outline sm" onclick="clearAiChat()">Limpar</button></div>
+          <div class="ai-messages" id="ai-messages">
+            <div class="ai-msg ai">Olá! Pode me perguntar qualquer coisa sobre esta matéria ou sobre suas anotações.</div>
+          </div>
+          <div class="ai-input-row">
+            <input type="text" id="ai-input" placeholder="Digite sua dúvida..." onkeydown="if(event.key==='Enter')sendAiMsg()"/>
+            <button onclick="sendAiMsg()">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIÇÕES -->
+  <div class="page" id="page-licoes">
+    <div class="ph"><div class="ph-left"><h1>Lições</h1><p>Tarefas e trabalhos para entregar</p></div></div>
+    <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn sm" onclick="toggleAddLicao()">+ Adicionar</button>
+      <button class="btn outline sm" onclick="exportLicoes()">Exportar lista</button>
+    </div>
+    <div class="add-form" id="add-licao-form">
+      <div class="frow">
+        <div class="fg"><label>Título</label><input type="text" id="licao-titulo" placeholder="Ex: Exercícios pág. 34"/></div>
+        <div class="fg"><label>Matéria</label><select id="licao-materia"></select></div>
+      </div>
+      <div class="frow">
+        <div class="fg"><label>Prazo</label><input type="date" id="licao-prazo"/></div>
+        <div class="fg"><label>Obs.</label><input type="text" id="licao-obs" placeholder="Ex: pág. 45 do livro"/></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn outline sm" onclick="toggleAddLicao()">Cancelar</button>
+        <button class="btn green sm" onclick="saveLicao()">Salvar</button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-opt active" onclick="setFilter('todas',this)">Todas</div>
+      <div class="filter-opt" onclick="setFilter('pendentes',this)">Pendentes</div>
+      <div class="filter-opt" onclick="setFilter('feitas',this)">Concluídas</div>
+    </div>
+    <div id="licoes-list"></div>
+  </div>
+
+  <!-- FLASHCARDS -->
+  <div class="page" id="page-flashcards">
+    <div class="ph">
+      <div class="ph-left"><h1>Flashcards</h1><p>Memorize com repetição espaçada</p></div>
+      <div style="display:flex;gap:7px;flex-wrap:wrap">
+        <button class="btn sm" onclick="toggleFcForm()">+ Novo card</button>
+        <button class="btn outline sm" onclick="toggleFcList()">Ver todos</button>
+      </div>
+    </div>
+    <!-- ESTUDO -->
+    <div id="fc-study-area">
+      <div class="fc-stats">
+        <div class="fc-stat"><div class="n" id="fc-total">0</div><div class="l">Total</div></div>
+        <div class="fc-stat"><div class="n" id="fc-facil">0</div><div class="l" style="color:var(--green)">Fácil</div></div>
+        <div class="fc-stat"><div class="n" id="fc-medio">0</div><div class="l" style="color:var(--yellow)">Médio</div></div>
+        <div class="fc-stat"><div class="n" id="fc-dificil">0</div><div class="l" style="color:var(--accent)">Difícil</div></div>
+      </div>
+      <div style="display:flex;gap:7px;margin-bottom:16px;justify-content:center;flex-wrap:wrap">
+        <button class="btn outline sm" onclick="setFcFilter('todos',this)">Todos</button>
+        <button class="btn outline sm" onclick="setFcFilter('dificil',this)">Só difíceis</button>
+        <button class="btn outline sm" onclick="setFcFilter('medio',this)">Médios</button>
+        <select id="fc-subject-filter" onchange="renderFlashcard()" style="padding:4px 8px;border:2px solid var(--border);background:var(--bg);font-family:'Courier New',monospace;font-size:10px;color:var(--text);text-transform:uppercase;letter-spacing:1px">
+          <option value="">Todas as matérias</option>
+        </select>
+      </div>
+      <div id="fc-card-area">
+        <div class="empty">Nenhum flashcard ainda. Clique em "+ Novo card" para criar.</div>
+      </div>
+      <div id="fc-answer-btns" style="display:none">
+        <div class="flashcard-controls">
+          <button class="btn red" onclick="rateFc('dificil')">Difícil</button>
+          <button class="btn" style="background:var(--yellow)" onclick="rateFc('medio')">Médio</button>
+          <button class="btn green" onclick="rateFc('facil')">Fácil</button>
+        </div>
+      </div>
+      <div id="fc-nav" style="display:none;text-align:center;margin-top:8px;font-size:11px;color:var(--muted)"></div>
+    </div>
+    <!-- FORM NOVO CARD -->
+    <div class="fc-add-form" id="fc-add-form">
+      <div class="frow">
+        <div class="fg"><label>Pergunta / Frente</label><textarea id="fc-pergunta" rows="3" placeholder="Ex: O que é fotossíntese?"></textarea></div>
+        <div class="fg"><label>Resposta / Verso</label><textarea id="fc-resposta" rows="3" placeholder="Ex: Processo pelo qual plantas produzem energia a partir da luz solar..."></textarea></div>
+      </div>
+      <div class="fg"><label>Matéria</label><select id="fc-materia"></select></div>
+      <div class="form-actions">
+        <button class="btn outline sm" onclick="toggleFcForm()">Cancelar</button>
+        <button class="btn green sm" onclick="saveFc()">Salvar</button>
+      </div>
+    </div>
+    <!-- LISTA DE CARDS -->
+    <div id="fc-list-area" style="display:none;margin-top:20px">
+      <div class="section-title">Todos os flashcards</div>
+      <div id="fc-list"></div>
+    </div>
+  </div>
+
+  <!-- RESUMIDOR -->
+  <div class="page" id="page-resumidor">
+    <div class="ph"><div class="ph-left"><h1>Resumidor IA</h1><p>Cole um texto e escolha como quer o resumo</p></div></div>
+    <div class="resumidor-wrap">
+      <div class="resumidor-top">
+        <span>Estilo:</span>
+        <button class="tipo-btn active" data-opt="curto">Curto</button>
+        <button class="tipo-btn" data-opt="topicos">Tópicos</button>
+        <button class="tipo-btn" data-opt="completo">Completo</button>
+        <button class="tipo-btn" data-opt="crianca">Fácil</button>
+        <button class="tipo-btn" data-opt="prova">Para prova</button>
+      </div>
+      <div class="resumidor-body">
+        <div class="resumidor-col">
+          <label>Texto original</label>
+          <textarea id="texto-original" placeholder="Cole o texto aqui..."></textarea>
+        </div>
+        <div class="resumidor-col">
+          <label>Resumo</label>
+          <textarea id="texto-resumo" readonly placeholder="O resumo vai aparecer aqui..."></textarea>
+        </div>
+      </div>
+      <div class="resumidor-foot">
+        <button class="btn outline sm" onclick="limpar()">Limpar</button>
+        <button class="btn sm" onclick="resumir()">Resumir</button>
+        <button class="btn green sm" onclick="salvarResumo()">Salvar como nota</button>
+        <button class="btn blue sm" onclick="copiarResumo()">Copiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CRONÔMETRO -->
+  <div class="page" id="page-timer">
+    <div class="ph"><div class="ph-left"><h1>Cronômetro de estudos</h1><p>Registre suas sessões de estudo</p></div></div>
+    <div class="timer-box">
+      <div class="timer-display" id="timer-display">00:00:00</div>
+      <div class="session-meta">
+        <div><label>Matéria:</label><select id="timer-materia"></select></div>
+        <div><label>Nota:</label><input type="text" id="timer-note" placeholder="O que você estudou?" style="width:220px"/></div>
+      </div>
+      <div class="timer-controls">
+        <button class="btn green" id="timer-start-btn" onclick="timerToggle()">Iniciar</button>
+        <button class="btn red" onclick="timerStop()">Parar e Salvar</button>
+        <button class="btn outline" onclick="timerReset()">Zerar</button>
+      </div>
+      <div class="weekly-chart">
+        <div class="weekly-chart-title">Horas estudadas essa semana</div>
+        <div class="chart-bars" id="weekly-bars"></div>
+      </div>
+      <div class="timer-sessions" id="timer-sessions">
+        <div class="empty" style="border:none;padding:20px">Nenhuma sessão registrada ainda</div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- MODAL EDITAR NOTA -->
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <h3>Editar anotação</h3>
+    <div class="fg"><label>Título</label><input type="text" id="edit-title"/></div>
+    <div class="fg"><label>Conteúdo</label><textarea id="edit-content" rows="7"></textarea></div>
+    <div class="fg"><label>Tags</label><input type="text" id="edit-tags"/></div>
+    <div class="modal-actions">
+      <button class="btn outline sm" onclick="closeModal()">Cancelar</button>
+      <button class="btn green sm" onclick="saveEdit()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUBJECTS=[
+  {id:'ciencias',name:'Ciências',color:'#2d7a4f'},
+  {id:'matematica',name:'Matemática',color:'#1a4fa8'},
+  {id:'portugues',name:'Português',color:'#c84b31'},
+  {id:'gramatica',name:'Gramática',color:'#8b1a6b'},
+  {id:'producao',name:'Produção de Texto',color:'#7a4f1a'},
+  {id:'historia',name:'História',color:'#4a3a1a'},
+  {id:'geografia',name:'Geografia',color:'#0e6e72'},
+  {id:'literatura',name:'Literatura',color:'#2d2d7a'},
+  {id:'arte',name:'Arte',color:'#c84b31'},
+  {id:'ed_fisica',name:'Ed. Física',color:'#1a7a3a'},
+  {id:'ingles',name:'Inglês',color:'#1a4f7a'},
+  {id:'espanhol',name:'Espanhol',color:'#7a1a1a'},
+];
+
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))||d}catch{return d}}
+function save(k,v){localStorage.setItem(k,JSON.stringify(v))}
+
+let notes=load('notes3',{});
+let licoes=load('licoes3',[]);
+let sessions=load('sessions',[]);
+let flashcards=load('flashcards',[]);
+let metaMin=load('metaMin',60);
+let currentSubject=null;
+let editIdx=null;
+let licaoFilter='todas';
+let resumoTipo='curto';
+let darkMode=load('dark',false);
+let fcFilter='todos';
+let fcIdx=0;
+let fcFiltered=[];
+let fcFlipped=false;
+let quizData=null;
+let quizIdx=0;
+let quizScore=0;
+let quizAnswered=false;
+
+// DARK
+function toggleDark(){darkMode=!darkMode;save('dark',darkMode);applyDark()}
+function applyDark(){document.body.classList.toggle('dark',darkMode);document.getElementById('dark-btn').textContent=darkMode?'Light':'Dark'}
+applyDark();
+
+// NAV
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')&&n.getAttribute('onclick').includes("'"+id+"'"))n.classList.add('active')});
+  if(id==='dashboard')renderDash();
+  if(id==='anotacoes')renderSubjects();
+  if(id==='licoes'){renderLicoes();fillMaterias('licao-materia')}
+  if(id==='timer'){fillMaterias('timer-materia');renderSessions();renderWeeklyChart()}
+  if(id==='flashcards'){fillFcSubjects();renderFlashcard();renderFcStats()}
+}
+
+// SEARCH
+let searchTimeout;
+function handleSearch(q){clearTimeout(searchTimeout);if(!q.trim()){document.getElementById('nav-busca').style.display='none';return}searchTimeout=setTimeout(()=>doSearch(q),300)}
+function doSearch(q){
+  q=(q||document.getElementById('global-search').value).trim();if(!q)return;
+  document.getElementById('nav-busca').style.display='';showPage('busca');
+  document.getElementById('busca-query').textContent=`"${q}" — clique em um resultado para abrir`;
+  const results=[];
+  SUBJECTS.forEach(s=>(notes[s.id]||[]).forEach((n,i)=>{
+    if(n.title.toLowerCase().includes(q.toLowerCase())||n.content.toLowerCase().includes(q.toLowerCase())||(n.tags||'').toLowerCase().includes(q.toLowerCase()))results.push({s,n,i});
+  }));
+  const el=document.getElementById('busca-results');
+  if(!results.length){el.innerHTML='<div class="empty">Nenhum resultado encontrado</div>';return}
+  el.innerHTML='<div class="search-results">'+results.map(r=>{
+    const hl=t=>t.replace(new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'),'gi'),m=>`<mark>${m}</mark>`);
+    return `<div class="search-result" onclick="openNoteFromSearch('${r.s.id}',${r.i})">
+      <div class="sr-title">${hl(r.n.title)}</div><div class="sr-sub">${r.s.name} · ${fmtDate(r.n.date)}</div>
+      <div class="sr-body">${hl(r.n.content.slice(0,100))}${r.n.content.length>100?'…':''}</div>
+    </div>`;
+  }).join('')+'</div>';
+}
+function openNoteFromSearch(sid,i){document.getElementById('global-search').value='';document.getElementById('nav-busca').style.display='none';showPage('anotacoes');openNotes(sid);setTimeout(()=>{const cards=document.querySelectorAll('.note-card');if(cards[i])cards[i].scrollIntoView({behavior:'smooth'})},100)}
+
+// META
+function saveMeta(v){metaMin=parseInt(v)||60;save('metaMin',metaMin);updateMetaDisplay()}
+function getTodaySecs(){
+  const hoje=new Date().toDateString();
+  return sessions.filter(s=>new Date(s.date).toDateString()===hoje).reduce((a,b)=>a+b.secs,0);
+}
+function updateMetaDisplay(){
+  const secs=getTodaySecs();
+  const mins=Math.floor(secs/60);
+  const pct=Math.min(100,Math.round((mins/metaMin)*100));
+  document.getElementById('meta-bar').style.width=pct+'%';
+  document.getElementById('meta-pct-label').textContent=pct+'%';
+  document.getElementById('meta-time-label').textContent=mins+' min estudados hoje';
+  const dashBar=document.getElementById('meta-dash-bar');
+  const dashLabel=document.getElementById('meta-dash-label');
+  if(dashBar){dashBar.style.width=pct+'%';if(pct>=100)dashBar.classList.add('done');else dashBar.classList.remove('done')}
+  if(dashLabel)dashLabel.textContent=mins+' / '+metaMin+' min';
+  const metaInput=document.getElementById('meta-input');
+  if(metaInput)metaInput.value=metaMin;
+}
+
+// DASH
+function renderDash(){
+  const d=new Date();
+  const dias=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  document.getElementById('dash-date').textContent=`${dias[d.getDay()]}, ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+  const tn=Object.values(notes).reduce((a,b)=>a+b.length,0);
+  const tl=licoes.length,tf=licoes.filter(l=>l.done).length;
+  const ts=getTodaySecs(),hrs=Math.floor(ts/3600),mins=Math.floor((ts%3600)/60);
+  document.getElementById('dash-notas').textContent=tn;
+  document.getElementById('dash-lt').textContent=tl;
+  document.getElementById('dash-lf').textContent=tf;
+  document.getElementById('dash-tempo').textContent=hrs>0?`${hrs}h ${mins}m`:`${mins}m`;
+  updateMetaDisplay();
+  const pend=licoes.filter(l=>!l.done).slice(0,4);
+  document.getElementById('dash-pendentes').innerHTML=!pend.length?'<div class="empty">Nenhuma lição pendente</div>':
+    '<div class="licao-list">'+pend.map(l=>buildLicaoHTML(l,licoes.indexOf(l))).join('')+'</div>';
+  const allN=[];SUBJECTS.forEach(s=>(notes[s.id]||[]).forEach(n=>allN.push({...n,sn:s.name,sc:s.color})));
+  allN.sort((a,b)=>new Date(b.date)-new Date(a.date));
+  document.getElementById('dash-recentes').innerHTML=!allN.length?'<div class="empty">Nenhuma anotação ainda</div>':
+    allN.slice(0,3).map(n=>`<div class="recent-item" style="--subject-color:${n.sc}">
+      <div class="ri-top"><span class="ri-title">${n.title}</span><span class="ri-sub">${n.sn} · ${fmtDate(n.date)}</span></div>
+      <div class="ri-body">${n.content.slice(0,110)}${n.content.length>110?'…':''}</div>
+    </div>`).join('');
+  updateBadge();
+}
+function updateBadge(){
+  const p=licoes.filter(l=>!l.done).length;
+  const b=document.getElementById('licoes-badge');b.textContent=p;b.classList.toggle('show',p>0);
+  const fb=document.getElementById('fc-badge');const fct=flashcards.length;fb.textContent=fct;fb.style.display=fct>0?'block':'none';
+}
+
+// SUBJECTS
+function renderSubjects(){
+  document.getElementById('subjects-grid').innerHTML=SUBJECTS.map(s=>{
+    const c=(notes[s.id]||[]).length;
+    return`<div class="subject-card" onclick="openNotes('${s.id}')">
+      <div class="subject-name"><span class="subject-dot" style="--subject-color:${s.color}"></span>${s.name}</div>
+      <div class="subject-count">${c} anotaç${c===1?'ão':'ões'}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('notes-area').style.display='none';
+  document.getElementById('subjects-grid').style.display='';
+}
+function openNotes(sid){
+  currentSubject=SUBJECTS.find(s=>s.id===sid);
+  document.getElementById('notes-area-title').textContent=currentSubject.name;
+  document.getElementById('ai-subject-name').textContent=currentSubject.name;
+  document.getElementById('quiz-subject-name').textContent=currentSubject.name;
+  document.getElementById('add-note-form').style.borderLeftColor=currentSubject.color;
+  document.getElementById('notes-area').style.display='block';
+  document.getElementById('subjects-grid').style.display='none';
+  clearAiChat();resetQuiz();renderNotes();
+}
+function closeNotes(){
+  document.getElementById('notes-area').style.display='none';
+  document.getElementById('subjects-grid').style.display='';
+  document.getElementById('add-note-form').classList.remove('open');
+  currentSubject=null;
+}
+function toggleAddNote(){
+  const f=document.getElementById('add-note-form');f.classList.toggle('open');
+  if(f.classList.contains('open'))document.getElementById('note-title-input').focus();
+}
+function saveNote(){
+  const t=document.getElementById('note-title-input').value.trim();
+  const c=document.getElementById('note-content-input').value.trim();
+  const tg=document.getElementById('note-tags-input').value.trim();
+  if(!t||!c){alert('Preencha título e conteúdo');return}
+  if(!notes[currentSubject.id])notes[currentSubject.id]=[];
+  notes[currentSubject.id].unshift({title:t,content:c,tags:tg,date:new Date().toISOString()});
+  save('notes3',notes);
+  document.getElementById('note-title-input').value='';document.getElementById('note-content-input').value='';document.getElementById('note-tags-input').value='';
+  document.getElementById('add-note-form').classList.remove('open');renderNotes();
+}
+function renderNotes(){
+  const arr=notes[currentSubject?.id]||[];const el=document.getElementById('note-list');
+  if(!arr.length){el.innerHTML='<div class="empty">Nenhuma anotação — clique em "+ Nova"</div>';return}
+  el.innerHTML='<div class="note-list">'+arr.map((n,i)=>`
+    <div class="note-card" style="border-left:4px solid ${currentSubject.color}">
+      <div class="note-left">
+        <div class="note-title">${n.title}</div>
+        <div class="note-date">${fmtDate(n.date)}${n.tags?` · <span style="color:var(--muted)">tags: ${n.tags}</span>`:''}</div>
+        <div class="note-body">${n.content}</div>
+      </div>
+      <div class="note-actions">
+        <button class="btn outline sm" onclick="editNote(${i})">Editar</button>
+        <button class="btn red sm" onclick="delNote(${i})">×</button>
+      </div>
+    </div>`).join('')+'</div>';
+}
+function editNote(i){editIdx=i;const n=notes[currentSubject.id][i];document.getElementById('edit-title').value=n.title;document.getElementById('edit-content').value=n.content;document.getElementById('edit-tags').value=n.tags||'';document.getElementById('edit-modal').classList.add('open')}
+function saveEdit(){const t=document.getElementById('edit-title').value.trim();const c=document.getElementById('edit-content').value.trim();const tg=document.getElementById('edit-tags').value.trim();if(!t||!c)return;notes[currentSubject.id][editIdx]={...notes[currentSubject.id][editIdx],title:t,content:c,tags:tg};save('notes3',notes);closeModal();renderNotes()}
+function delNote(i){if(!confirm('Excluir esta anotação?'))return;notes[currentSubject.id].splice(i,1);save('notes3',notes);renderNotes()}
+function closeModal(){document.getElementById('edit-modal').classList.remove('open')}
+function exportNotes(){
+  if(!currentSubject)return;const arr=notes[currentSubject.id]||[];if(!arr.length){alert('Nenhuma anotação para exportar');return}
+  const txt=`CADERNO — ${currentSubject.name.toUpperCase()}\nExportado em: ${new Date().toLocaleDateString('pt-BR')}\n${'='.repeat(50)}\n\n`+arr.map(n=>`${n.title}\n${fmtDate(n.date)}${n.tags?' | tags: '+n.tags:''}\n${'-'.repeat(40)}\n${n.content}\n`).join('\n');
+  const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);a.download=`${currentSubject.id}_notas.txt`;a.click();
+}
+
+// QUIZ IA
+function resetQuiz(){quizData=null;quizIdx=0;quizScore=0;quizAnswered=false;document.getElementById('quiz-body').innerHTML='<div style="text-align:center;color:var(--muted);font-size:11px;padding:20px">Clique em "Gerar quiz" para criar perguntas baseadas nas suas anotações</div>'}
+async function gerarQuiz(){
+  const arr=notes[currentSubject?.id]||[];
+  if(arr.length<1){alert('Adicione pelo menos uma anotação para gerar o quiz.');return}
+  const qb=document.getElementById('quiz-body');
+  qb.innerHTML='<div style="text-align:center;color:var(--muted);font-size:12px;padding:24px">Gerando perguntas...</div>';
+  const ctx=arr.map(n=>`[${n.title}]: ${n.content}`).join('\n\n');
+  const prompt=`Com base nestas anotações de ${currentSubject.name}, crie um quiz de 5 perguntas de múltipla escolha. Responda APENAS com JSON válido, sem texto adicional, sem markdown.
+Formato exato:
+{"perguntas":[{"q":"pergunta aqui","opts":["A) ...","B) ...","C) ...","D) ..."],"correta":0,"explicacao":"explicação curta"}]}
+onde "correta" é o índice (0-3) da opção correta.
+ANOTAÇÕES:\n${ctx}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    const text=d.content?.[0]?.text||'';
+    const clean=text.replace(/```json|```/g,'').trim();
+    quizData=JSON.parse(clean);quizIdx=0;quizScore=0;quizAnswered=false;renderQuizQ();
+  }catch(e){qb.innerHTML='<div style="color:var(--accent);padding:16px;font-size:12px">Erro ao gerar quiz. Tente novamente.</div>'}
+}
+function renderQuizQ(){
+  if(!quizData||!quizData.perguntas)return;
+  const p=quizData.perguntas;
+  if(quizIdx>=p.length){
+    document.getElementById('quiz-body').innerHTML=`<div class="quiz-score">Quiz concluído! Você acertou ${quizScore} de ${p.length} perguntas.<br><br><button class="btn sm" onclick="gerarQuiz()">Novo quiz</button></div>`;return;
+  }
+  const q=p[quizIdx];
+  document.getElementById('quiz-body').innerHTML=`
+    <div class="quiz-question">${quizIdx+1}/${p.length} — ${q.q}</div>
+    <div class="quiz-options">${q.opts.map((o,i)=>`<button class="quiz-opt" id="qopt${i}" onclick="answerQuiz(${i})">${o}</button>`).join('')}</div>
+    <div id="quiz-feed" style="display:none" class="quiz-feedback"></div>
+    <div id="quiz-next" style="display:none;text-align:right"><button class="btn sm" onclick="nextQuizQ()">${quizIdx<p.length-1?'Próxima →':'Ver resultado'}</button></div>`;
+}
+function answerQuiz(i){
+  if(quizAnswered)return;quizAnswered=true;
+  const q=quizData.perguntas[quizIdx];
+  const feed=document.getElementById('quiz-feed');
+  q.opts.forEach((_,j)=>{
+    const btn=document.getElementById('qopt'+j);btn.disabled=true;
+    if(j===q.correta)btn.classList.add('reveal-correct');
+    else if(j===i&&i!==q.correta)btn.classList.add('wrong');
+  });
+  if(i===q.correta){quizScore++;feed.textContent='✓ Correto! '+q.explicacao;feed.className='quiz-feedback';}
+  else{feed.textContent='✗ Errado. '+q.explicacao;feed.className='quiz-feedback wrong';}
+  feed.style.display='block';document.getElementById('quiz-next').style.display='block';
+}
+function nextQuizQ(){quizIdx++;quizAnswered=false;renderQuizQ()}
+
+// AI CHAT
+let aiHistory=[];
+function clearAiChat(){aiHistory=[];document.getElementById('ai-messages').innerHTML='<div class="ai-msg ai">Olá! Pode me perguntar qualquer coisa sobre esta matéria ou sobre suas anotações.</div>'}
+function appendMsg(role,text){const el=document.getElementById('ai-messages');const d=document.createElement('div');d.className='ai-msg '+role;d.textContent=text;el.appendChild(d);el.scrollTop=el.scrollHeight;return d}
+async function sendAiMsg(){
+  const inp=document.getElementById('ai-input');const q=inp.value.trim();if(!q)return;inp.value='';
+  appendMsg('user',q);const thinking=appendMsg('ai thinking','pensando...');aiHistory.push({role:'user',content:q});
+  const notesCtx=(notes[currentSubject?.id]||[]).map(n=>`[${n.title}]: ${n.content}`).join('\n\n');
+  const sys=`Você é um assistente de estudos para um aluno do ensino fundamental. A matéria atual é "${currentSubject?.name}". Responda de forma clara e simples. Máx. 3 parágrafos.\n\nANOTAÇÕES:\n${notesCtx||'(nenhuma)'}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,system:sys,messages:aiHistory})});
+    const d=await r.json();const reply=d.content?.[0]?.text||'Erro.';
+    thinking.className='ai-msg ai';thinking.textContent=reply;aiHistory.push({role:'assistant',content:reply});
+  }catch{thinking.className='ai-msg ai';thinking.textContent='Erro de conexão.'}
+}
+
+// LIÇÕES
+function fillMaterias(selId){document.getElementById(selId).innerHTML=SUBJECTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('')}
+function toggleAddLicao(){document.getElementById('add-licao-form').classList.toggle('open')}
+function setFilter(f,el){licaoFilter=f;document.querySelectorAll('.filter-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');renderLicoes()}
+function saveLicao(){
+  const t=document.getElementById('licao-titulo').value.trim();const m=document.getElementById('licao-materia').value;const p=document.getElementById('licao-prazo').value;const o=document.getElementById('licao-obs').value.trim();
+  if(!t||!m){alert('Título e matéria são obrigatórios');return}
+  licoes.unshift({titulo:t,materia:m,prazo:p,obs:o,done:false,date:new Date().toISOString()});save('licoes3',licoes);
+  document.getElementById('licao-titulo').value='';document.getElementById('licao-prazo').value='';document.getElementById('licao-obs').value='';
+  document.getElementById('add-licao-form').classList.remove('open');renderLicoes();updateBadge();
+}
+function toggleLicao(i){licoes[i].done=!licoes[i].done;save('licoes3',licoes);renderLicoes();updateBadge()}
+function delLicao(i){if(!confirm('Excluir?'))return;licoes.splice(i,1);save('licoes3',licoes);renderLicoes();updateBadge()}
+function buildPrazo(prazo){
+  if(!prazo)return'';const dp=new Date(prazo+'T23:59:59');const diff=Math.ceil((dp-new Date())/86400000);
+  if(diff<0)return`<span class="prazo urgente">Atrasado</span>`;
+  if(diff===0)return`<span class="prazo urgente">Hoje</span>`;
+  if(diff<=2)return`<span class="prazo urgente">${diff}d</span>`;
+  return`<span class="prazo normal">${new Date(prazo+'T12:00').toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</span>`;
+}
+function buildLicaoHTML(l,i){
+  const s=SUBJECTS.find(s=>s.id===l.materia)||{name:l.materia,color:'#888'};
+  return`<div class="licao-row ${l.done?'done-row':''}">
+    <div class="check ${l.done?'done':''}" onclick="toggleLicao(${i})">${l.done?'✓':''}</div>
+    <div class="licao-info"><div class="licao-t ${l.done?'done-text':''}">${l.titulo}<span class="tag">${s.name}</span></div><div class="licao-m">${l.obs||''}</div></div>
+    ${buildPrazo(l.prazo)}<button class="btn red sm" onclick="delLicao(${i})">×</button>
+  </div>`;
+}
+function renderLicoes(){
+  let arr=licoes;
+  if(licaoFilter==='pendentes')arr=licoes.filter(l=>!l.done);
+  if(licaoFilter==='feitas')arr=licoes.filter(l=>l.done);
+  document.getElementById('licoes-list').innerHTML=!arr.length?'<div class="empty">Nenhuma lição aqui</div>':'<div class="licao-list">'+arr.map(l=>buildLicaoHTML(l,licoes.indexOf(l))).join('')+'</div>';
+}
+function exportLicoes(){
+  const txt=`LISTA DE LIÇÕES\n${'='.repeat(40)}\n\n`+licoes.map(l=>{const s=SUBJECTS.find(s=>s.id===l.materia)||{name:l.materia};return`[${l.done?'X':' '}] ${l.titulo} (${s.name})${l.prazo?' — Prazo: '+new Date(l.prazo+'T12:00').toLocaleDateString('pt-BR'):''}${l.obs?' — '+l.obs:''}`}).join('\n');
+  const a=document.createElement('a');a.href='data:text/plain;charset=utf-8,'+encodeURIComponent(txt);a.download='licoes.txt';a.click();
+}
+
+// FLASHCARDS
+function fillFcSubjects(){
+  const sel=document.getElementById('fc-subject-filter');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">Todas as matérias</option>'+SUBJECTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  sel.value=cur;
+  document.getElementById('fc-materia').innerHTML=SUBJECTS.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+}
+function toggleFcForm(){document.getElementById('fc-add-form').classList.toggle('open');document.getElementById('fc-list-area').style.display='none'}
+function toggleFcList(){
+  const area=document.getElementById('fc-list-area');
+  area.style.display=area.style.display==='none'?'block':'none';
+  if(area.style.display==='block')renderFcList();
+}
+function saveFc(){
+  const q=document.getElementById('fc-pergunta').value.trim();const a=document.getElementById('fc-resposta').value.trim();const m=document.getElementById('fc-materia').value;
+  if(!q||!a){alert('Preencha pergunta e resposta');return}
+  flashcards.unshift({q,a,materia:m,nivel:'novo',date:new Date().toISOString()});save('flashcards',flashcards);
+  document.getElementById('fc-pergunta').value='';document.getElementById('fc-resposta').value='';
+  document.getElementById('fc-add-form').classList.remove('open');renderFlashcard();renderFcStats();updateBadge();
+}
+function setFcFilter(f,el){fcFilter=f;fcIdx=0;renderFlashcard()}
+function getFilteredFc(){
+  const subj=document.getElementById('fc-subject-filter')?.value||'';
+  let arr=flashcards;
+  if(subj)arr=arr.filter(c=>c.materia===subj);
+  if(fcFilter==='dificil')arr=arr.filter(c=>c.nivel==='dificil'||c.nivel==='novo');
+  if(fcFilter==='medio')arr=arr.filter(c=>c.nivel==='medio');
+  return arr;
+}
+function renderFlashcard(){
+  fcFiltered=getFilteredFc();fcFlipped=false;
+  const area=document.getElementById('fc-card-area');
+  const answerBtns=document.getElementById('fc-answer-btns');
+  const nav=document.getElementById('fc-nav');
+  if(!fcFiltered.length){area.innerHTML='<div class="empty">Nenhum flashcard aqui. Crie um novo!</div>';answerBtns.style.display='none';nav.style.display='none';return}
+  if(fcIdx>=fcFiltered.length)fcIdx=0;
+  const c=fcFiltered[fcIdx];
+  const s=SUBJECTS.find(s=>s.id===c.materia)||{name:c.materia,color:'#888'};
+  const nivelCores={facil:'var(--green)',medio:'var(--yellow)',dificil:'var(--accent)',novo:'var(--blue)'};
+  area.innerHTML=`<div style="text-align:center;margin-bottom:10px;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${s.color};margin-right:4px"></span>${s.name}</div>
+  <div class="flashcard-wrap" onclick="flipFc()">
+    <div class="flashcard-inner" id="fc-inner">
+      <div class="flashcard-face front"><div class="flashcard-label">Pergunta — clique para ver a resposta</div><div class="flashcard-text">${c.q}</div></div>
+      <div class="flashcard-face back"><div class="flashcard-label">Resposta</div><div class="flashcard-text">${c.a}</div></div>
+    </div>
+  </div>`;
+  answerBtns.style.display='none';nav.style.display='block';
+  nav.textContent=`${fcIdx+1} / ${fcFiltered.length} cards`;
+}
+function flipFc(){
+  fcFlipped=!fcFlipped;
+  document.getElementById('fc-inner').classList.toggle('flipped',fcFlipped);
+  document.getElementById('fc-answer-btns').style.display=fcFlipped?'block':'none';
+}
+function rateFc(nivel){
+  const c=fcFiltered[fcIdx];const idx=flashcards.findIndex(f=>f.q===c.q&&f.materia===c.materia);
+  if(idx>=0){flashcards[idx].nivel=nivel;save('flashcards',flashcards)}
+  fcIdx++;if(fcIdx>=fcFiltered.length)fcIdx=0;
+  fcFlipped=false;renderFlashcard();renderFcStats();
+}
+function renderFcStats(){
+  document.getElementById('fc-total').textContent=flashcards.length;
+  document.getElementById('fc-facil').textContent=flashcards.filter(c=>c.nivel==='facil').length;
+  document.getElementById('fc-medio').textContent=flashcards.filter(c=>c.nivel==='medio').length;
+  document.getElementById('fc-dificil').textContent=flashcards.filter(c=>c.nivel==='dificil'||c.nivel==='novo').length;
+}
+function renderFcList(){
+  const el=document.getElementById('fc-list');
+  if(!flashcards.length){el.innerHTML='<div class="empty">Nenhum flashcard</div>';return}
+  el.innerHTML='<div class="fc-list">'+flashcards.map((c,i)=>{
+    const s=SUBJECTS.find(s=>s.id===c.materia)||{name:c.materia};
+    const niveis={facil:'Fácil',medio:'Médio',dificil:'Difícil',novo:'Novo'};
+    const nivelClass=c.nivel==='facil'?'':c.nivel==='medio'?'med':'hard';
+    return`<div class="fc-row"><div class="fc-row-q">${c.q}</div><div class="fc-row-a">${c.a}</div><span class="fc-badge ${nivelClass}">${niveis[c.nivel]||'Novo'}</span><span class="tag">${s.name}</span><button class="btn red sm" onclick="delFc(${i})">×</button></div>`;
+  }).join('')+'</div>';
+}
+function delFc(i){if(!confirm('Excluir flashcard?'))return;flashcards.splice(i,1);save('flashcards',flashcards);renderFcList();renderFlashcard();renderFcStats();updateBadge()}
+
+// RESUMIDOR
+document.querySelectorAll('.tipo-btn').forEach(b=>{
+  b.addEventListener('click',()=>{document.querySelectorAll('.tipo-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');resumoTipo=b.dataset.opt});
+});
+const PROMPTS={
+  curto:'Resuma o seguinte texto em no máximo 3 frases diretas e objetivas:',
+  topicos:'Resuma o seguinte texto em tópicos com bullet points claros:',
+  completo:'Faça um resumo completo e detalhado mantendo todas as ideias principais:',
+  crianca:'Explique de forma simples, como se fosse para um aluno do 7º ano:',
+  prova:'Transforme em resumo para prova. Destaque conceitos-chave e definições importantes:'
+};
+async function resumir(){
+  const txt=document.getElementById('texto-original').value.trim();if(!txt){alert('Cole um texto primeiro');return}
+  const out=document.getElementById('texto-resumo');out.value='Processando...';
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:PROMPTS[resumoTipo]+'\n\n'+txt}]})});
+    const d=await r.json();out.value=d.content?.[0]?.text||'Erro ao gerar resumo.';
+  }catch{out.value='Erro de conexão.'}
+}
+function limpar(){document.getElementById('texto-original').value='';document.getElementById('texto-resumo').value=''}
+function copiarResumo(){const t=document.getElementById('texto-resumo').value;if(!t){alert('Nenhum resumo');return}navigator.clipboard.writeText(t).then(()=>alert('Copiado!')).catch(()=>alert('Selecione o texto manualmente'))}
+function salvarResumo(){
+  const r=document.getElementById('texto-resumo').value.trim();if(!r){alert('Gere um resumo primeiro');return}
+  const titulo=prompt('Título da anotação:');if(!titulo)return;
+  const ops=SUBJECTS.map((s,i)=>`${i+1}. ${s.name}`).join('\n');
+  const n=parseInt(prompt('Matéria (número):\n'+ops));const s=SUBJECTS[n-1];if(!s){alert('Matéria inválida');return}
+  if(!notes[s.id])notes[s.id]=[];
+  notes[s.id].unshift({title:titulo,content:r,tags:'resumo-ia',date:new Date().toISOString()});
+  save('notes3',notes);alert('Salvo em '+s.name);
+}
+
+// CRONÔMETRO
+let timerSecs=0,timerRunning=false,timerInterval=null;
+function pad(n){return String(n).padStart(2,'0')}
+function fmtTimer(s){return`${pad(Math.floor(s/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`}
+function timerToggle(){
+  if(timerRunning){clearInterval(timerInterval);timerRunning=false;document.getElementById('timer-start-btn').textContent='Continuar';document.getElementById('timer-display').className='timer-display paused'}
+  else{timerRunning=true;document.getElementById('timer-start-btn').textContent='Pausar';document.getElementById('timer-display').className='timer-display running';
+    timerInterval=setInterval(()=>{timerSecs++;document.getElementById('timer-display').textContent=fmtTimer(timerSecs)},1000)}
+}
+function timerStop(){
+  if(timerSecs<5){alert('Estude pelo menos alguns segundos!');return}
+  clearInterval(timerInterval);timerRunning=false;
+  const mat=document.getElementById('timer-materia').value;const nota=document.getElementById('timer-note').value.trim();
+  sessions.unshift({materia:mat,secs:timerSecs,nota:nota||'',date:new Date().toISOString()});save('sessions',sessions);
+  timerSecs=0;document.getElementById('timer-display').textContent='00:00:00';document.getElementById('timer-display').className='timer-display';
+  document.getElementById('timer-start-btn').textContent='Iniciar';document.getElementById('timer-note').value='';
+  renderSessions();renderWeeklyChart();updateMetaDisplay();
+}
+function timerReset(){clearInterval(timerInterval);timerRunning=false;timerSecs=0;document.getElementById('timer-display').textContent='00:00:00';document.getElementById('timer-display').className='timer-display';document.getElementById('timer-start-btn').textContent='Iniciar'}
+function renderSessions(){
+  const el=document.getElementById('timer-sessions');
+  if(!sessions.length){el.innerHTML='<div class="empty" style="border:none;padding:20px">Nenhuma sessão ainda</div>';return}
+  el.innerHTML=sessions.slice(0,20).map(sess=>{
+    const sub=SUBJECTS.find(x=>x.id===sess.materia)||{name:sess.materia};
+    const h=Math.floor(sess.secs/3600),m=Math.floor(sess.secs%3600/60),sc=sess.secs%60;
+    const dur=h>0?`${h}h ${m}m`:m>0?`${m}m ${sc}s`:`${sc}s`;
+    return`<div class="session-row"><span><strong>${sub.name}</strong>${sess.nota?' — '+sess.nota:''}</span><span class="s-time">${dur} · ${fmtDate(sess.date)}</span></div>`;
+  }).join('');
+}
+function renderWeeklyChart(){
+  const dias=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  const hoje=new Date();const hojeDow=hoje.getDay();
+  const weekData=Array(7).fill(0);
+  sessions.forEach(s=>{
+    const d=new Date(s.date);const diff=Math.floor((hoje-d)/(86400000));
+    if(diff>=0&&diff<7){const dow=(hojeDow-diff+7)%7;weekData[dow]+=s.secs}
+  });
+  const maxSecs=Math.max(...weekData,1);
+  const el=document.getElementById('weekly-bars');
+  el.innerHTML=dias.map((dia,i)=>{
+    const isHoje=i===hojeDow;
+    const mins=Math.floor(weekData[i]/60);
+    const h=Math.round((weekData[i]/maxSecs)*72);
+    return`<div class="chart-bar-wrap">
+      <div class="chart-bar-val">${mins>0?(mins>=60?Math.floor(mins/60)+'h':mins+'m'):''}</div>
+      <div class="chart-bar ${isHoje?'today':''}" style="height:${h}px"></div>
+      <div class="chart-bar-label" style="${isHoje?'font-weight:700;color:var(--accent)':''}'">${dia}</div>
+    </div>`;
+  }).join('');
+}
+function fmtDate(d){return new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'})}
+
+// INIT
+renderDash();updateBadge();updateMetaDisplay();
+document.getElementById('meta-input').value=metaMin;
+</script>
+</body>
+</html>

@@ -1615,6 +1615,14 @@ async function sendIaMsg() {
       })
     });
     const d = await r.json();
+
+    if (d.error) {
+      iaRemoveTyping();
+      iaMsgAppendBot(`Erro da API: ${JSON.stringify(d.detail || d.error)}`, false);
+      iaTyping = false;
+      return;
+    }
+
     const reply = d.content
       ? d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n').trim() || 'Não consegui gerar uma resposta.'
       : 'Erro na resposta.';
@@ -1626,7 +1634,7 @@ async function sendIaMsg() {
 
   } catch(e) {
     iaRemoveTyping();
-    iaMsgAppendBot('Erro de conexão. Verifique sua internet e tente novamente.', false);
+    iaMsgAppendBot(`Erro: ${e.message}`, false);
     iaTyping = false;
   }
 }

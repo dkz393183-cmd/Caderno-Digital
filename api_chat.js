@@ -52,6 +52,14 @@ export default async function handler(req) {
     );
 
     const data = await response.json();
+
+    if (!response.ok) {
+      return new Response(JSON.stringify({ error: 'Gemini error', detail: data }), {
+        status: response.status,
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+      });
+    }
+
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta.';
 
     // Retorna no formato que o frontend já espera
